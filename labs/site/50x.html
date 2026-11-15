@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>上游暂时不可用 · Nginx Lab</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="/">
+        <span class="brand-mark">N</span>
+        <span>Nginx Lab</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="wrap article">
+    <p class="eyebrow">HTTP 502 / 504</p>
+    <h1>上游没有及时给出响应。</h1>
+    <p class="lede">
+      这个页面由 <code>error_page 502 504 /50x.html</code> 提供。先看
+      <code>docker compose logs nginx</code> 里的 error.log，再确认上游容器是否在运行。
+    </p>
+    <p><a class="button ghost" href="/">返回首页</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p>learnNginx · 教学实验站点。</p>
+      <p><a href="/">首页</a></p>
+    </div>
+  </footer>
+</body>
+</html>

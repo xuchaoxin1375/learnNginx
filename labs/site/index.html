@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nginx Lab · 从一个请求开始</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="/">
+        <span class="brand-mark">N</span>
+        <span>Nginx Lab</span>
+      </a>
+      <nav class="site-nav" aria-label="主导航">
+        <a href="/about.html">关于实验</a>
+        <a href="/app/">SPA 回退</a>
+        <a href="/match/exact">location 演示</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <p class="eyebrow">learnNginx · 静态站点实验</p>
+        <h1>把一次 HTTP 请求，拆成可以观察的几步。</h1>
+        <p class="lede">
+          这个站点由 nginx 直接提供静态文件。下面的入口分别演示反向代理、负载均衡、
+          HTTPS、限速和缓存。先打开浏览器开发者工具的 Network 面板，再逐个访问。
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="/about.html">先看实验说明</a>
+          <a class="button ghost" href="http://localhost:8081/api/">调用上游 API</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap section">
+      <div class="section-heading">
+        <p class="eyebrow">实验地图</p>
+        <h2>一个仓库，几种典型入口</h2>
+        <p>端口可以在 <code>.env</code> 中修改；修改后请同步调整下面的链接。</p>
+      </div>
+
+      <div class="grid">
+        <article class="card">
+          <p class="card-kicker">静态文件</p>
+          <h3>8080 · 本站</h3>
+          <p>由 <code>root</code>、<code>index</code> 和 <code>try_files</code> 提供页面与资源。</p>
+          <a href="/about.html">查看说明</a>
+        </article>
+
+        <article class="card">
+          <p class="card-kicker">反向代理</p>
+          <h3>8081 · /api/</h3>
+          <p>把 <code>/api/</code> 转发到 api1，并注入 <code>X-Forwarded-*</code> 请求头。</p>
+          <a href="http://localhost:8081/api/">查看上游响应</a>
+        </article>
+
+        <article class="card">
+          <p class="card-kicker">负载均衡</p>
+          <h3>8082 · /api/</h3>
+          <p>在 api1 与 api2 之间轮询；响应里的 <code>instance</code> 字段会变化。</p>
+          <a href="http://localhost:8082/api/">连续刷新几次</a>
+        </article>
+
+        <article class="card">
+          <p class="card-kicker">TLS</p>
+          <h3>8443 · HTTPS</h3>
+          <p>使用自签名证书；浏览器会提示不受信任，这是实验室的正常现象。</p>
+          <a href="https://localhost:8443/">打开 HTTPS 站点</a>
+        </article>
+
+        <article class="card">
+          <p class="card-kicker">限速与缓存</p>
+          <h3>8082 · 运维实验</h3>
+          <p>快速请求 <code>/api/limited</code> 观察 429；访问 <code>/api/cache-test</code> 观察缓存状态。</p>
+          <a href="http://localhost:8082/api/cache-test">查看缓存响应</a>
+        </article>
+
+        <article class="card">
+          <p class="card-kicker">OpenResty</p>
+          <h3>8083 · Lua</h3>
+          <p>需要先启用 <code>openresty</code> profile；用 Lua 在请求处理阶段生成响应。</p>
+          <a href="http://localhost:8083/lua/hello">调用 Lua 端点</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="wrap section split">
+      <div>
+        <p class="eyebrow">观察优先</p>
+        <h2>不要只看“能不能打开”</h2>
+        <p>
+          教程里的每条命令都尽量配一个可验证的结果。打开页面前后，比较响应头、上游实例名、
+          状态码和日志时间，才能把配置和实际行为对上。
+        </p>
+      </div>
+      <div class="terminal" aria-label="示例命令">
+        <div class="terminal-bar"><span></span><span></span><span></span></div>
+        <pre><code>curl -i http://localhost:8080/
+curl -i http://localhost:8081/api/
+curl -s http://localhost:8082/api/ | grep instance
+curl -k -i https://localhost:8443/</code></pre>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p>learnNginx · 教学实验站点。示例数据均为虚构。</p>
+      <p><a href="/about.html">实验说明</a></p>
+    </div>
+  </footer>
+
+  <script src="/assets/app.js"></script>
+</body>
+</html>

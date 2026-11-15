@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SPA 回退实验 · Nginx Lab</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="/">
+        <span class="brand-mark">N</span>
+        <span>Nginx Lab</span>
+      </a>
+      <nav class="site-nav" aria-label="主导航">
+        <a href="/about.html">关于实验</a>
+        <a href="/app/">SPA 回退</a>
+        <a href="/match/exact">location 演示</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap article">
+    <p class="eyebrow">try_files 实验</p>
+    <h1>前端路由没有对应的文件，也能返回页面。</h1>
+    <p class="lede">
+      当前浏览器路径是 <code data-current-path>/app/</code>。服务器上并不存在这个路径对应的
+      文件，但 <code>try_files</code> 把它回退到了 <code>/app/index.html</code>。
+    </p>
+
+    <div class="callout">
+      <strong>试试这些地址</strong>
+      <p>
+        <a href="/app/users/42">/app/users/42</a> ·
+        <a href="/app/orders/2026">/app/orders/2026</a> ·
+        <a href="/app/settings/profile">/app/settings/profile</a>
+      </p>
+    </div>
+
+    <h2>配置在做什么</h2>
+    <pre><code>location /app/ {
+    try_files $uri $uri/ /app/index.html;
+}</code></pre>
+    <p>
+      nginx 先找真实文件，再找目录，最后把请求内部转发到 <code>/app/index.html</code>。
+      浏览器地址栏不会变，前端路由因此可以接管路径。
+    </p>
+
+    <p><a class="button ghost" href="/">返回首页</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p>learnNginx · 教学实验站点。</p>
+      <p><a href="/">首页</a></p>
+    </div>
+  </footer>
+
+  <script src="/assets/app.js"></script>
+</body>
+</html>

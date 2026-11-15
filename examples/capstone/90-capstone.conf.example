@@ -1,0 +1,96 @@
+# Capstone reference configuration.
+# Copy to labs/nginx/conf.d/90-capstone.conf after reading docs/capstone.md.
+# This file is not loaded automatically because its name ends in .example.
+
+upstream capstone_backend {
+    server api1:8000 max_fails=2 fail_timeout=10s;
+    server api2:8000 max_fails=2 fail_timeout=10s;
+    keepalive 16;
+}
+
+limit_req_zone $binary_remote_addr zone=capstone_limit:10m rate=3r/s;
+
+proxy_cache_path /var/cache/nginx/capstone levels=1:2 keys_zone=capstone_cache:10m
+                 max_size=100m inactive=10m use_temp_path=off;
+
+server {
+    listen 8082;
+    server_name _;
+
+    root  /usr/share/nginx/html;
+    index index.html;
+    client_max_body_size 2m;
+
+    include /etc/nginx/snippets/security-headers.conf;
+
+    location = /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    # 限速：平均 3 请求/秒，允许突发 2 个，超出返回 429。
+    location = /api/limited {
+        limit_req zone=capstone_limit burst=2 nodelay;
+        limit_req_status 429;
+        proxy_pass http://api1:8000/limited;
+        include /etc/nginx/snippets/proxy-headers.conf;
+        proxy_read_timeout 10s;
+    }
+
+    # 微缓存：只缓存 200 响应 5 秒；缓存状态写入响应头。
+    location = /api/cache-test {
+        proxy_cache capstone_cache;
+        proxy_cache_valid 200 5s;
+        proxy_cache_key "$scheme$request_method$host$request_uri";
+        proxy_cache_lock on;
+        add_header X-Cache-Status $upstream_cache_status always;
+        include /etc/nginx/snippets/security-headers.conf;
+        proxy_pass http://api1:8000/cache-test;
+        include /etc/nginx/snippets/proxy-headers.conf;
+        proxy_read_timeout 10s;
+    }
+
+    # 统一 API 入口，转发到两个上游并复用连接。
+    location /api/ {
+        proxy_pass http://capstone_backend/;
+        include /etc/nginx/snippets/proxy-headers.conf;
+        proxy_set_header Connection "";
+        proxy_next_upstream error timeout http_502 http_503 http_504;
+        proxy_next_upstream_tries 2;
+        proxy_next_upstream_timeout 10s;
+        proxy_intercept_errors on;
+    }
+
+    # 单页应用回退。
+    location /app/ {
+        try_files $uri $uri/ /app/index.html;
+    }
+
+    # 隐藏文件默认拒绝；ACME 需要单独放行 .well-known。
+    location ~ /\. {
+        deny all;
+    }
+
+    # 静态资源缓存；只用 expires，避免覆盖 server 级安全头。
+    location ~* \.(?:css|js|mjs|svg|png|jpe?g|gif|ico|woff2?)$ {
+        expires 1h;
+        access_log off;
+        try_files $uri =404;
+    }
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    location = /404.html {
+        internal;
+    }
+
+    location = /50x.html {
+        internal;
+    }
+
+    error_page 404 /404.html;
+    error_page 502 504 /50x.html;
+}

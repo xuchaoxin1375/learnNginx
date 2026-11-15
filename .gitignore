@@ -1,0 +1,23 @@
+# Local overrides
+.env
+
+# Generated certificates must never be committed.
+labs/nginx/certs/*
+!labs/nginx/certs/.gitkeep
+
+# Runtime logs
+labs/nginx/logs/*
+!labs/nginx/logs/.gitkeep
+labs/openresty/logs/*
+!labs/openresty/logs/.gitkeep
+*.log
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

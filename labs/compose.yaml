@@ -1,0 +1,64 @@
+name: learn-nginx
+
+services:
+  api1:
+    build:
+      context: ./api
+    environment:
+      INSTANCE_NAME: api1
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 3s
+    restart: unless-stopped
+
+  api2:
+    build:
+      context: ./api
+    environment:
+      INSTANCE_NAME: api2
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 3s
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.30.6-alpine
+    depends_on:
+      api1:
+        condition: service_healthy
+      api2:
+        condition: service_healthy
+    ports:
+      - "${LAB_HTTP_PORT:-8080}:80"
+      - "${LAB_PROXY_PORT:-8081}:8080"
+      - "${LAB_LB_PORT:-8082}:8081"
+      - "${LAB_HTTPS_PORT:-8443}:8443"
+      - "${LAB_CAPSTONE_PORT:-8084}:8082"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/snippets:/etc/nginx/snippets:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - ./site:/usr/share/nginx/html:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/healthz >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  openresty:
+    image: openresty/openresty:1.27.1.2-alpine
+    profiles: ["openresty"]
+    ports:
+      - "${LAB_OPENRESTY_PORT:-8083}:80"
+    volumes:
+      - ./openresty/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
+    restart: unless-stopped

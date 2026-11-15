@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>关于这个实验 · Nginx Lab</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="/">
+        <span class="brand-mark">N</span>
+        <span>Nginx Lab</span>
+      </a>
+      <nav class="site-nav" aria-label="主导航">
+        <a href="/about.html">关于实验</a>
+        <a href="/app/">SPA 回退</a>
+        <a href="/match/exact">location 演示</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap article">
+    <p class="eyebrow">实验说明</p>
+    <h1>这是一个故意保持简单的站点。</h1>
+    <p class="lede">
+      页面全部是静态文件，没有构建步骤，也不依赖外部字体或 CDN。这样可以把注意力放在
+      nginx 如何处理请求上，而不是前端工具链。
+    </p>
+
+    <h2>你会在这里看到什么</h2>
+    <ul>
+      <li>静态文件、目录索引和自定义 404 页面。</li>
+      <li><code>location</code> 的精确匹配、前缀匹配和正则匹配差异。</li>
+      <li>SPA 的 <code>try_files</code> 回退。</li>
+      <li>缓存在 CSS/JS 上的响应头。</li>
+      <li>到上游 API、HTTPS、限速和缓存的入口。</li>
+    </ul>
+
+    <h2>安全边界</h2>
+    <p>
+      仓库里的证书是自签名证书，私钥只用于本机实验；<code>.env</code> 和
+      <code>labs/nginx/certs/</code> 下的生成物都不应提交到版本库。限速、访问控制和
+      TLS 配置是为了教学，不构成生产环境的安全方案。
+    </p>
+
+    <h2>建议的阅读方式</h2>
+    <p>
+      先按 README 的学习路径读工作模型和配置模型，再打开对应章节的实验。每章末尾有练习，
+      先自己预测结果，再用 <code>curl -i</code> 或日志核对。
+    </p>
+
+    <p><a class="button ghost" href="/">返回首页</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p>learnNginx · 教学实验站点。</p>
+      <p><a href="/">首页</a></p>
+    </div>
+  </footer>
+</body>
+</html>
