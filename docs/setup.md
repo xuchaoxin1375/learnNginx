@@ -183,6 +183,7 @@ bash scripts/lab.sh up
 | `labs/nginx/conf.d/10-proxy.conf` | 固定上游的反向代理 |
 | `labs/nginx/conf.d/20-lb.conf` | 负载均衡、缓存、限速、状态页 |
 | `labs/nginx/conf.d/30-https.conf` | TLS 站点 |
+| `labs/nginx/conf.d/40-vhost.conf` | `server_name` 虚拟主机演示 |
 | `labs/nginx/snippets/` | 可复用的安全头与代理头 |
 | `labs/api/app.py` | 上游 API，无第三方依赖 |
 | `labs/site/` | 静态站点源文件 |

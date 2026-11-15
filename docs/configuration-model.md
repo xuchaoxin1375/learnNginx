@@ -73,7 +73,7 @@ keepalive_timeout    65;       # 默认单位是秒
 - 先有监听端口，后有 `Host` 匹配。请求打到 `8081` 不会因为 `Host` 写了 `example.com` 就跑到 `80` 的 server。
 - TLS 的 SNI 在 HTTP 之前参与证书选择；没有 SNI 或客户端不支持时，会落到该端口的默认 server。初学阶段先记住“HTTPS 先握手，再按 Host 选 server”。
 
-实验里所有站点都用 `server_name _;`，所以访问 `localhost`、`127.0.0.1` 或任意 `Host` 都会落到同一个默认 server。这适合单站点实验，不适合多租户生产环境。
+实验里的静态站点用 `server_name _;` 作为默认 server，另外有一个 `server_name example.com;` 的虚拟主机。访问 `localhost`、`127.0.0.1` 或未匹配的 `Host` 会落到默认站点；把 `Host` 改成 `example.com`，会命中精确匹配的 server。这适合演示单站点与多域名的差异，但生产环境要明确每个域名的证书、默认站点和 404 行为。
 
 ### root 与 alias
 
@@ -96,6 +96,32 @@ location ^~ /static/ {
 ```
 
 `^~` 表示“前缀匹配成功后跳过后面的正则检查”。如果不写 `^~`，`/static/style.css` 会先被静态资源正则 `\.(css|js|...)$` 抢走，然后按 `root` 去找 `/usr/share/nginx/html/static/style.css`，结果 404。这是 `location` 顺序问题的典型例子，下一章会展开。
+
+### 观察 server_name
+
+实验台在 `labs/nginx/conf.d/40-vhost.conf` 里放了一个只匹配 `example.com` 的虚拟主机：
+
+```nginx
+server {
+    listen 80;
+    server_name example.com;
+
+    location / {
+        default_type text/plain;
+        return 200 "vhost example.com\n";
+    }
+}
+```
+
+用 `Host` 头切换命中：
+
+```shell
+curl -i http://localhost:8080/
+curl -i -H 'Host: example.com' http://localhost:8080/
+curl -i -H 'Host: other.example' http://localhost:8080/
+```
+
+第一个和第三个请求落到默认的静态站点，第二个返回 `vhost example.com`。这说明 `server_name` 匹配的是 HTTP `Host`，而不是 URL 里的 IP 或端口；端口先决定连接落到哪个 `listen`，然后才轮到 `Host` 选 server。
 
 ### 常用变量
 
@@ -126,10 +152,10 @@ curl -i 'http://localhost:8080/vars?x=1'
 预期正文包含 `uri=/vars`、`request_uri=/vars?x=1`、`args=x=1`。再指定一个带端口和大写字母的 Host：
 
 ```shell
-curl -i -H 'Host: Example.com:8080' 'http://localhost:8080/vars?x=1'
+curl -i -H 'Host: Example.test:8080' 'http://localhost:8080/vars?x=1'
 ```
 
-对比 `host=example.com` 和 `http_host=Example.com:8080`，就能看出规范化与原始值的差别。
+对比 `host=example.test` 和 `http_host=Example.test:8080`，就能看出规范化与原始值的差别。这里用 `.test` 而不是 `example.com`，是因为后者会命中前面演示的虚拟主机；这也说明 `server_name` 的选择会先于 location。
 
 ### include 与文件组织
 
@@ -201,7 +227,7 @@ docker compose -f labs/compose.yaml exec nginx nginx -T
 <details>
 <summary>参考答案</summary>
 
-- `/vars` 的 `uri` 是 `/vars`，`request_uri` 是 `/vars?x=1`，`args` 是 `x=1`。带 `Host: Example.com:8080` 时，`$host` 规范化为 `example.com`，`$http_host` 保留原始 `Example.com:8080`。
+- `/vars` 的 `uri` 是 `/vars`，`request_uri` 是 `/vars?x=1`，`args` 是 `x=1`。带 `Host: Example.test:8080` 时，`$host` 规范化为 `example.test`，`$http_host` 保留原始 `Example.test:8080`。如果改成 `example.com`，请求会先命中虚拟主机，不会到达 `/vars`。
 - 去掉 `^~` 后，`/static/style.css` 会先命中静态资源正则，按 `root` 去找 `/usr/share/nginx/html/static/style.css`，该文件不存在，返回 404。加回 `^~` 后，前缀匹配直接生效，`alias` 把 `/static/` 替换为 `/assets/`，返回 CSS。
 - 片段：`location = /hello { default_type text/plain; return 200 "hello from nginx\n"; }`。`=` 表示精确匹配，只有 `/hello` 命中，`/hello/` 和 `/hello/x` 不会命中。
 - `nginx -t` 会报 `unexpected end of file, expecting ";" or "}"` 一类的错误。`reload` 在配置校验失败时不会替换旧 worker，旧配置继续服务；这正是先 `-t` 再 reload 的价值。恢复配置后重新 `-t` 和 reload。
