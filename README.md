@@ -82,10 +82,16 @@ API 实例返回的 JSON 里带有 `instance` 字段，值是 `api1` 或 `api2`�
 - 可用端口 `8080`、`8081`、`8082`、`8443`，以及可选的 `8083`；综合项目还需要 `8084`。
 - Git Bash、WSL 或任意 bash 环境，用来运行仓库脚本。
 
-在仓库根目录执行：
+如果还没获取仓库：
 
 ```shell
-cd /path/to/learnNginx
+git clone https://gitee.com/xuchaoxin1375/learnNginx.git
+cd learnNginx
+```
+
+然后在仓库根目录执行：
+
+```shell
 bash scripts/check-env.sh
 bash scripts/lab.sh up
 ```
