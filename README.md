@@ -89,6 +89,8 @@ git clone https://gitee.com/xuchaoxin1375/learnNginx.git
 cd learnNginx
 ```
 
+GitHub 镜像：[xuchaoxin1375/learnNginx](https://github.com/xuchaoxin1375/learnNginx)。
+
 然后在仓库根目录执行：
 
 ```shell
